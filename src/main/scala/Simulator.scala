@@ -3,28 +3,34 @@ class Simulator(val lifts: Int, val floors: Int, randomiser: Randomiser = scalaR
     ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List())), peopleWaiting = List(), time = 0)
 
   def nextTick(previousState: ElevatorState, time: Int): ElevatorState = {
-    println(s"time is $time")
-
+    val movedLifts = previousState.lifts.map(lift => moveLifts(lift))
+    val emptiedLifts = movedLifts.map(emptyLift)
     val peopleWaiting = previousState.peopleWaiting
-    println(s"peopleWaiting are $peopleWaiting")
-
     val generatedWaiters = generatePeople(peopleWaiting, time)
-    println(s"generatedWaiters are $generatedWaiters")
-
     if (!peopleWaiting.isEmpty) {
       val person: Person = peopleWaiting.head
-      val lift: Lift = previousState.lifts.head
+      val lift: Lift = emptiedLifts.head
       if (lift.location == person.start) {
-        println("person gets in lift")
         val newLift = lift.copy(destination = Some(person.destination), people = List(person))
-        println(s"newLift is $newLift")
         val newPeopleWaiting = generatedWaiters.filterNot(p => p == person)
-        println(s"newPeopleWaiting are $newPeopleWaiting")
         val newState = ElevatorState(lifts = List(newLift),peopleWaiting = newPeopleWaiting, time = time)
-        println(s"newState is $newState")
         newState
-      } else previousState.copy(peopleWaiting = generatedWaiters)
-    } else previousState.copy(peopleWaiting = generatedWaiters)
+      } else previousState.copy(peopleWaiting = generatedWaiters, lifts = emptiedLifts)
+    } else previousState.copy(peopleWaiting = generatedWaiters, lifts = emptiedLifts)
+  }
+
+  def moveLifts(lift: Lift): Lift =
+    if (lift.destination.isDefined) {
+      val liftDirection = if (lift.destination.get < lift.location) "down" else "up"
+      val liftWithNewLocation = if (liftDirection == "down") lift.copy(lift.location - 0.5) else lift.copy(lift.location + 0.5)
+      if (liftWithNewLocation.location == liftWithNewLocation.destination.get.toDouble) liftWithNewLocation.copy(destination = None) else liftWithNewLocation
+    } else lift
+
+  def emptyLift(lift: Lift): Lift = {
+    val people = lift.people.partition(p => p.destination == lift.location)
+    val disembarkingPeople = people._1
+    val remainingPeople = people._2
+    lift.copy(people = remainingPeople)
   }
 
   def generatePeople(existingPeople: List[Person], time: Int): List[Person] = {
@@ -47,7 +53,7 @@ trait ElevatorObject
 
 case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int)
 
-case class Lift(location: Int, destination: Option[Int], people: List[Person]) extends ElevatorObject
+case class Lift(location: Double, destination: Option[Int], people: List[Person]) extends ElevatorObject
 
 case class Person(start: Int, destination: Int, startTime: Int) extends ElevatorObject
 
