@@ -1,4 +1,11 @@
 class Simulator(val lifts: Int, val floors: Int, randomiser: Randomiser = scalaRandomizer) {
+
+  def run(time: Int = 0, maxTicks: Int, state: ElevatorState = initialTick()): ElevatorState = {
+    val newState = nextTick(state, time)
+    val newTime = time + 1
+    if (newTime < maxTicks) run(newTime, maxTicks, newState) else newState
+  }
+
   def initialTick(): ElevatorState =
     ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List())), peopleWaiting = List(), time = 0)
 

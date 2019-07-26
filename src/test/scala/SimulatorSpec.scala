@@ -63,11 +63,10 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   it should "stop a lift at its destination floor and empty of people" in {
     val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(1, Some(2), List(Person(0, 2, 1)))), time = 1)
-    val stateOne = s.nextTick(initialState, 2)
-    val stateTwo = s.nextTick(stateOne, 3)
 
-    stateOne.lifts shouldBe List(Lift(1.5, Some(2), List(Person(0, 2, 1))))
-    stateTwo.lifts shouldBe List(Lift(2, None, List()))
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(1, Some(2), List(Person(0, 2, 1)))), time = 1)
+    val finalState = s.run(0, 2, initialState)
+
+    finalState.lifts shouldBe List(Lift(2, None, List()))
   }
 }
