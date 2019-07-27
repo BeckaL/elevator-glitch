@@ -41,7 +41,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   it should "generate new people with a destination and a location at a new tick" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
-    val people = s.generatePeople(0)
+    val people = mockRandomiser.generatePeople(0, 5)
 
     assert(people.size == 6)
     assert(people(0).start == 0)

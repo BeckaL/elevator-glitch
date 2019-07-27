@@ -14,27 +14,17 @@ class Simulator(val lifts: Int,
 
   def nextTick(state: ElevatorState, time: Int): ElevatorState = {
     val loadedLifts = criteria.loadCriteria(updateLifts(state.lifts), state.peopleWaiting)
-    val newPeopleWaiting = state.peopleWaiting.filterNot(peopleInLifts(loadedLifts).contains(_)) ++ generatePeople(time)
+    val peopleStillWaitingAfterLoading = state.peopleWaiting.filterNot(peopleInLifts(loadedLifts).contains(_))
+    val newPeopleWaiting = peopleStillWaitingAfterLoading ++ randomiser.generatePeople(time, this.floors)
     ElevatorState(lifts = loadedLifts, peopleWaiting = newPeopleWaiting, time = time)
   }
 
   def peopleInLifts(lifts: Lifts): People = lifts.flatMap(l => l.people)
 
   def updateLifts(lifts: Lifts): Lifts = lifts.map(lift => lift.moveOne().updateDestination().empty())
-
-  def generatePeople(time: Int): People = {
-    val people = for (floor <- 0 to this.floors) yield {
-      val noOfPeople = randomiser.randomNumberOfPeople()
-      List.fill(noOfPeople)(Person(start = floor, destination = randomiser.randomDestination(floor, this.floors), startTime = time))
-    }
-    people.toList.flatten
-  }
 }
 
-trait Randomiser{
-  def randomDestination(location: Int, floors: Int): Int
-  def randomNumberOfPeople(): Int
-}
+
 
 trait ElevatorObject {
   type Lifts = List[Lift]
@@ -44,34 +34,28 @@ trait ElevatorObject {
 case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int)
 
 case class Lift(location: Double, destination: Option[Int], people: List[Person]) extends ElevatorObject {
-  def moveOne(): Lift = {
-    if (destination.isDefined) {
-      this.copy(location = if (destination.get < location) location - 0.5 else location + 0.5)
-    } else this
-  }
+  def moveOne(): Lift = if (destination.isDefined) this.copy(location = oneTowardsDestination()) else this
 
-  def updateDestination(): Lift = {
-    if (destination.isDefined  && location == destination.get.toDouble) {
-      this.copy(destination = None)
-    } else this
-  }
+  def updateDestination(): Lift = if (atDestination()) this.copy(destination = None) else this
 
-  def empty(): Lift = {
-    val peopleSeparated = people.partition(p => p.destination == location)
-    val disembarkingPeople = peopleSeparated._1
-    val remainingPeople = peopleSeparated._2
-    this.copy(people = remainingPeople)
-  }
+  def empty(): Lift = this.copy(people = people.filter(p => p.destination != location))
+
+  private def atDestination(): Boolean = destination.isDefined && location == destination.get.toDouble
+
+  private def oneTowardsDestination(): Double = if (destination.get < location) location - 0.5 else location + 0.5
 }
 
 case class Person(start: Int, destination: Int, startTime: Int) extends ElevatorObject
 
+
 object scalaRandomizer extends Randomiser {
   val r = scala.util.Random
+
   def randomDestination(location: Int, floors: Int): Int = {
     val viableFloors = (0 to floors).toSet diff Set(location)
     viableFloors.toVector(r.nextInt(viableFloors.size))
   }
+
   def randomNumberOfPeople(): Int =
     r.nextInt(100) match {
       case x if x < 35 => 0
@@ -95,7 +79,7 @@ object BasicCriteria extends ScenarioCriteria {
     val peopleToLoad = peopleWaiting.filter(p => p.start == lift.location)
     if (peopleToLoad.nonEmpty) {
       val nearestDestinationOfPeople = peopleToLoad.map(_.destination).minBy(d => difference(lift.location, d))
-      val nextDestination = if (lift.destination.nonEmpty) {
+      val nextDestination = if (lift.destination.nonEmpty && peopleToLoad.nonEmpty) {
         if (difference(lift.location, lift.destination.get) < difference(lift.location, nearestDestinationOfPeople)) {
           lift.destination
         } else Some(nearestDestinationOfPeople)
@@ -107,3 +91,18 @@ object BasicCriteria extends ScenarioCriteria {
   private def difference(location: Double, destination: Int): Double = (location - destination).abs
 }
 
+trait Randomiser extends ElevatorObject {
+  def randomDestination(location: Int, floors: Int): Int
+
+  def randomNumberOfPeople(): Int
+
+  def generatePeople(time: Int, floors: Int): People = {
+    (0 to floors).toList.flatMap(floor => {
+      val noOfPeople = randomNumberOfPeople()
+      List.fill(noOfPeople)(
+        Person(start = floor,
+          destination = randomDestination(floor, floors),
+          startTime = time))
+    })
+  }
+}
