@@ -2,28 +2,6 @@ import org.scalatest._
 
 class SimulatorSpec extends FlatSpec with Matchers {
 
-  object mockRandomiser extends Randomiser {
-    override def randomDestination(location: Int, floors: Int): Int = 2
-
-    override def randomNumberOfPeople(): Int = 1
-  }
-
-  object mockRandomiserGeneratingNoPeople extends Randomiser {
-    override def randomDestination(location: Int, floors: Int): Int = 0
-
-    override def randomNumberOfPeople(): Int = 0
-  }
-
-  object mockRandomiserGeneratingOnePerson extends Randomiser {
-    var timesCalled = 0
-
-    override def randomDestination(location: Int, floors: Int): Int = 2
-
-    override def randomNumberOfPeople(): Int = if (timesCalled == 0) {
-      timesCalled += 1; 1
-    } else 0
-  }
-
   "A simulator" should "be generated with a number of floors and lifts" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
 
@@ -31,7 +9,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
     s.lifts shouldBe 2
   }
 
-  "A simulator" should "be start with lifts on the ground floor with no destination or people, and no people waiting" in {
+  "A simulator" should "start with lifts on the ground floor with no destination or people, and no people waiting" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
     val state = s.initialTick()
 
@@ -82,4 +60,27 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
     stateOne.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1))), Lift(5, Some(1), List(Person(5, 1, 1))))
   }
+
+  object mockRandomiser extends Randomiser {
+    override def randomDestination(location: Int, floors: Int): Int = 2
+
+    override def randomNumberOfPeople(): Int = 1
+  }
+
+  object mockRandomiserGeneratingNoPeople extends Randomiser {
+    override def randomDestination(location: Int, floors: Int): Int = 0
+
+    override def randomNumberOfPeople(): Int = 0
+  }
+
+  object mockRandomiserGeneratingOnePerson extends Randomiser {
+    var timesCalled = 0
+
+    override def randomDestination(location: Int, floors: Int): Int = 2
+
+    override def randomNumberOfPeople(): Int = if (timesCalled == 0) {
+      timesCalled += 1; 1
+    } else 0
+  }
+
 }

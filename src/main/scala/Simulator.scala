@@ -13,7 +13,7 @@ class Simulator(val lifts: Int,
     ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List())), peopleWaiting = List(), time = 0)
 
   def nextTick(state: ElevatorState, time: Int): ElevatorState = {
-    val loadedLifts = criteria.loadCriteria(updateLifts(state.lifts), state.peopleWaiting)
+    val loadedLifts = criteria.loadPeople(updateLifts(state.lifts), state.peopleWaiting)
     val peopleStillWaitingAfterLoading = state.peopleWaiting.filterNot(peopleInLifts(loadedLifts).contains(_))
     val newPeopleWaiting = peopleStillWaitingAfterLoading ++ randomiser.generatePeople(time, this.floors)
     ElevatorState(lifts = loadedLifts, peopleWaiting = newPeopleWaiting, time = time)
@@ -24,14 +24,14 @@ class Simulator(val lifts: Int,
   def updateLifts(lifts: Lifts): Lifts = lifts.map(lift => lift.moveOne().updateDestination().empty())
 }
 
-
-
 trait ElevatorObject {
   type Lifts = List[Lift]
   type People = List[Person]
 }
 
 case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int)
+
+case class Person(start: Int, destination: Int, startTime: Int) extends ElevatorObject
 
 case class Lift(location: Double, destination: Option[Int], people: List[Person]) extends ElevatorObject {
   def moveOne(): Lift = if (destination.isDefined) this.copy(location = oneTowardsDestination()) else this
@@ -45,50 +45,9 @@ case class Lift(location: Double, destination: Option[Int], people: List[Person]
   private def oneTowardsDestination(): Double = if (destination.get < location) location - 0.5 else location + 0.5
 }
 
-case class Person(start: Int, destination: Int, startTime: Int) extends ElevatorObject
-
-
-object scalaRandomizer extends Randomiser {
-  val r = scala.util.Random
-
-  def randomDestination(location: Int, floors: Int): Int = {
-    val viableFloors = (0 to floors).toSet diff Set(location)
-    viableFloors.toVector(r.nextInt(viableFloors.size))
-  }
-
-  def randomNumberOfPeople(): Int =
-    r.nextInt(100) match {
-      case x if x < 35 => 0
-      case x if x < 55 => 1
-      case x if x < 75 => 2
-      case x if x < 90 => 3
-      case x if x < 97 => 4
-      case _ => 5
-    }
-}
 
 trait ScenarioCriteria extends ElevatorObject {
-  def loadCriteria(lifts: Lifts, peopleWaiting: People): Lifts
-}
-
-object BasicCriteria extends ScenarioCriteria {
-
-  override def loadCriteria(lifts: Lifts, peopleWaiting: People): List[Lift] = lifts.map(l => loadLift(l, peopleWaiting))
-
-  def loadLift(lift: Lift, peopleWaiting: People): Lift = {
-    val peopleToLoad = peopleWaiting.filter(p => p.start == lift.location)
-    if (peopleToLoad.nonEmpty) {
-      val nearestDestinationOfPeople = peopleToLoad.map(_.destination).minBy(d => difference(lift.location, d))
-      val nextDestination = if (lift.destination.nonEmpty && peopleToLoad.nonEmpty) {
-        if (difference(lift.location, lift.destination.get) < difference(lift.location, nearestDestinationOfPeople)) {
-          lift.destination
-        } else Some(nearestDestinationOfPeople)
-      } else Some(nearestDestinationOfPeople)
-      lift.copy(people = lift.people ++ peopleToLoad, destination = nextDestination)
-    } else lift
-  }
-
-  private def difference(location: Double, destination: Int): Double = (location - destination).abs
+  def loadPeople(lifts: Lifts, peopleWaiting: People): Lifts
 }
 
 trait Randomiser extends ElevatorObject {
