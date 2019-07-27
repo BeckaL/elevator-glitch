@@ -1,6 +1,6 @@
 class Simulator(val lifts: Int,
                 val floors: Int,
-                randomiser: Randomiser = scalaRandomizer,
+                randomiser: Randomiser,
                 criteria: ScenarioCriteria = BasicCriteria) extends ElevatorObject {
 
   def run(time: Int = 0, maxTicks: Int, state: ElevatorState = initialTick()): ElevatorState = {
@@ -12,14 +12,10 @@ class Simulator(val lifts: Int,
   def initialTick(): ElevatorState =
     ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List())), peopleWaiting = List(), time = 0)
 
-  def nextTick(previousState: ElevatorState, time: Int): ElevatorState = {
-    val updatedLifts = updateLifts(previousState.lifts)
-    val peopleWaiting = previousState.peopleWaiting
-    val generatedWaiters = generatePeople(time)
-    val lift = updatedLifts.head
-    val loadedLift = criteria.loadCriteria(lift, peopleWaiting)
-    val newPeopleWaiting = peopleWaiting.filterNot(peopleInLifts(List(loadedLift)).contains(_)) ++ generatedWaiters
-    ElevatorState(lifts = List(loadedLift),peopleWaiting = newPeopleWaiting, time = time)
+  def nextTick(state: ElevatorState, time: Int): ElevatorState = {
+    val loadedLifts = criteria.loadCriteria(updateLifts(state.lifts), state.peopleWaiting)
+    val newPeopleWaiting = state.peopleWaiting.filterNot(peopleInLifts(loadedLifts).contains(_)) ++ generatePeople(time)
+    ElevatorState(lifts = loadedLifts, peopleWaiting = newPeopleWaiting, time = time)
   }
 
   def peopleInLifts(lifts: Lifts): People = lifts.flatMap(l => l.people)
@@ -27,8 +23,7 @@ class Simulator(val lifts: Int,
   def updateLifts(lifts: Lifts): Lifts = lifts.map(lift => lift.moveOne().updateDestination().empty())
 
   def generatePeople(time: Int): People = {
-    val floors = this.floors
-    val people = for (floor <- 0 to floors) yield {
+    val people = for (floor <- 0 to this.floors) yield {
       val noOfPeople = randomiser.randomNumberOfPeople()
       List.fill(noOfPeople)(Person(start = floor, destination = randomiser.randomDestination(floor, this.floors), startTime = time))
     }
@@ -40,7 +35,6 @@ trait Randomiser{
   def randomDestination(location: Int, floors: Int): Int
   def randomNumberOfPeople(): Int
 }
-
 
 trait ElevatorObject {
   type Lifts = List[Lift]
@@ -90,11 +84,14 @@ object scalaRandomizer extends Randomiser {
 }
 
 trait ScenarioCriteria extends ElevatorObject {
-  def loadCriteria(lift: Lift, peopleWaiting: People): Lift
+  def loadCriteria(lifts: Lifts, peopleWaiting: People): Lifts
 }
 
 object BasicCriteria extends ScenarioCriteria {
-  override def loadCriteria(lift: Lift, peopleWaiting: People): Lift = {
+
+  override def loadCriteria(lifts: Lifts, peopleWaiting: People): List[Lift] = lifts.map(l => loadLift(l, peopleWaiting))
+
+  def loadLift(lift: Lift, peopleWaiting: People): Lift = {
     val peopleToLoad = peopleWaiting.filter(p => p.start == lift.location)
     if (peopleToLoad.nonEmpty) {
       val nearestDestinationOfPeople = peopleToLoad.map(_.destination).minBy(d => difference(lift.location, d))

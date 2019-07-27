@@ -4,31 +4,37 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   object mockRandomiser extends Randomiser {
     override def randomDestination(location: Int, floors: Int): Int = 2
+
     override def randomNumberOfPeople(): Int = 1
   }
 
   object mockRandomiserGeneratingNoPeople extends Randomiser {
     override def randomDestination(location: Int, floors: Int): Int = 0
+
     override def randomNumberOfPeople(): Int = 0
   }
 
   object mockRandomiserGeneratingOnePerson extends Randomiser {
     var timesCalled = 0
+
     override def randomDestination(location: Int, floors: Int): Int = 2
-    override def randomNumberOfPeople(): Int = if (timesCalled == 0) {timesCalled += 1; 1} else 0
+
+    override def randomNumberOfPeople(): Int = if (timesCalled == 0) {
+      timesCalled += 1; 1
+    } else 0
   }
 
   "A simulator" should "be generated with a number of floors and lifts" in {
-
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
+
     s.floors shouldBe 5
     s.lifts shouldBe 2
   }
 
   "A simulator" should "be start with lifts on the ground floor with no destination or people, and no people waiting" in {
-
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
     val state = s.initialTick()
+
     state.lifts shouldBe List(Lift(0, None, List()), Lift(0, None, List()))
     state.peopleWaiting shouldBe List()
   }
@@ -36,6 +42,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
   it should "generate new people with a destination and a location at a new tick" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
     val people = s.generatePeople(0)
+
     assert(people.size == 6)
     assert(people(0).start == 0)
     assert(people(0).destination == 2)
@@ -62,10 +69,17 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   it should "stop a lift at its destination floor and empty of people" in {
     val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-
     val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(1, Some(2), List(Person(0, 2, 1)))), time = 1)
     val finalState = s.run(0, 2, initialState)
 
     finalState.lifts shouldBe List(Lift(2, None, List()))
+  }
+
+  it should "load two lifts at different locations" in {
+    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(Person(0, 2, 1), Person(5, 1, 1)), lifts = List(Lift(0, None, List()), Lift(5, None, List())), time = 1)
+    val stateOne = s.nextTick(initialState, 2)
+
+    stateOne.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1))), Lift(5, Some(1), List(Person(5, 1, 1))))
   }
 }
