@@ -1,4 +1,4 @@
-class Simulator(val lifts: Int, val floors: Int, randomiser: Randomiser = scalaRandomizer) {
+class Simulator(val lifts: Int, val floors: Int, randomiser: Randomiser = scalaRandomizer) extends ElevatorObject {
 
   def run(time: Int = 0, maxTicks: Int, state: ElevatorState = initialTick()): ElevatorState = {
     val newState = nextTick(state, time)
@@ -25,9 +25,9 @@ class Simulator(val lifts: Int, val floors: Int, randomiser: Randomiser = scalaR
     } else previousState.copy(peopleWaiting = generatedWaiters, lifts = updatedLifts)
   }
 
-  def updateLifts(lifts: List[Lift]): List[Lift] = lifts.map(lift => lift.moveOne().updateDestination().empty())
+  def updateLifts(lifts: Lifts): Lifts = lifts.map(lift => lift.moveOne().updateDestination().empty())
 
-  def generatePeople(existingPeople: List[Person], time: Int): List[Person] = {
+  def generatePeople(existingPeople: People, time: Int): People = {
     val floors = this.floors
     val people = for (floor <- 0 to floors) yield {
       val noOfPeople = randomiser.randomNumberOfPeople()
@@ -43,7 +43,10 @@ trait Randomiser{
 }
 
 
-trait ElevatorObject
+trait ElevatorObject {
+  type Lifts = List[Lift]
+  type People = List[Person]
+}
 
 case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int)
 
