@@ -15,8 +15,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
   object mockRandomiserGeneratingOnePerson extends Randomiser {
     var timesCalled = 0
     override def randomDestination(location: Int, floors: Int): Int = 2
-    override def randomNumberOfPeople(): Int =
-      if (timesCalled == 0) {timesCalled += 1; 1} else 0
+    override def randomNumberOfPeople(): Int = if (timesCalled == 0) {timesCalled += 1; 1} else 0
   }
 
   "A simulator" should "be generated with a number of floors and lifts" in {
@@ -36,7 +35,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   it should "generate new people with a destination and a location at a new tick" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
-    val people = s.generatePeople(List(), 0)
+    val people = s.generatePeople(0)
     assert(people.size == 6)
     assert(people(0).start == 0)
     assert(people(0).destination == 2)
