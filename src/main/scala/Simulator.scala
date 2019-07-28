@@ -3,33 +3,33 @@ class Simulator(val lifts: Int,
                 randomiser: Randomiser,
                 criteria: ScenarioCriteria = BasicCriteria) extends ElevatorObject {
 
-  def run(time: Int = 0, maxTicks: Int, state: ElevatorState = initialTick()): ElevatorState = {
+  def run(time: Int = 0, maxTicks: Int, state: ElevatorState = initialTick): ElevatorState = {
     val newState = nextTick(state, time)
     val newTime = time + 1
     if (newTime < maxTicks) run(newTime, maxTicks, newState) else newState
   }
 
-  def initialTick(): ElevatorState =
+  val initialTick =
     ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List())), peopleWaiting = List(), time = 0)
 
   def nextTick(state: ElevatorState, time: Int): ElevatorState = {
     val peopleInLiftsAtTickStart = peopleInLifts(state.lifts)
     val loadedLifts = criteria.loadPeople(updateLifts(state.lifts), state.peopleWaiting)
-    val peopleWithCompletedJourneys = peopleInLiftsAtTickStart.filterNot(peopleInLifts(loadedLifts).contains(_))
+    val peopleWithCompletedJourneys: People = peopleInLiftsAtTickStart.filterNot(peopleInLifts(loadedLifts).contains(_))
     val peopleStillWaitingAfterLoading = state.peopleWaiting.filterNot(peopleInLifts(loadedLifts).contains(_))
     val newPeopleWaiting = peopleStillWaitingAfterLoading ++ randomiser.generatePeople(time, this.floors)
     ElevatorState(lifts = loadedLifts,
       peopleWaiting = newPeopleWaiting,
       time = time,
-      journeyHistory = state.journeyHistory ++ peopleWithCompletedJourneys.map(registerJourney(_, time)))
+      journeyHistory = state.journeyHistory ++ peopleWithCompletedJourneys.map(p => registerJourney(p, time)))
   }
 
   def peopleInLifts(lifts: Lifts): People = lifts.flatMap(_.people)
 
   def updateLifts(lifts: Lifts): Lifts = lifts.map(lift => lift.moveOne().updateDestination().empty())
 
-  def registerJourney(person: Person, time: Int): Map[String, Int] =
-    Map("startFloor" -> person.start, "endFloor" -> person.destination, "startTime" -> person.startTime, "endTime" -> time)
+  def registerJourney(p: Person, time: Int): JourneyHistory =
+    JourneyHistory(startFloor = p.start, endFloor = p.destination, startTime = p.startTime, endTime = time)
 }
 
 trait ElevatorObject {
@@ -37,7 +37,9 @@ trait ElevatorObject {
   type People = List[Person]
 }
 
-case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int, journeyHistory: List[Map[String, Int]] = List())
+case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int, journeyHistory: List[JourneyHistory] = List())
+
+case class JourneyHistory(startFloor: Int, endFloor: Int, startTime: Int, endTime: Int)
 
 case class Person(start: Int, destination: Int, startTime: Int) extends ElevatorObject
 

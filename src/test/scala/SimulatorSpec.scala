@@ -11,7 +11,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   "A simulator" should "start with lifts on the ground floor with no destination or people, and no people waiting" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
-    val state = s.initialTick()
+    val state = s.initialTick
 
     state.lifts shouldBe List(Lift(0, None, List()), Lift(0, None, List()))
     state.peopleWaiting shouldBe List()
@@ -28,7 +28,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
 
   it should "people wait for one tick after generation before getting in a lift" in {
     val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingOnePerson)
-    val initialState = s.initialTick()
+    val initialState = s.initialTick
     val stateOne = s.nextTick(initialState, 1)
     val stateTwo = s.nextTick(stateOne, 2)
 
@@ -66,7 +66,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
     val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(5, None, List(Person(1, 5, 0)))), time = 1)
     val stateOne = s.nextTick(initialState, 2)
 
-    stateOne.journeyHistory shouldBe List(Map("startFloor" -> 1, "endFloor" -> 5, "startTime" -> 0, "endTime" -> 2))
+    stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 1, endFloor = 5, startTime = 0, endTime = 2))
   }
 
   object mockRandomiser extends Randomiser {
