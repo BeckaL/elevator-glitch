@@ -69,6 +69,14 @@ class SimulatorSpec extends FlatSpec with Matchers {
     stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 1, endFloor = 5, startTime = 0, endTime = 2))
   }
 
+  it should "a lift opens its door to let people board" in {
+    val s = new Simulator(floors = 3, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(Person(1, 2, 0)), lifts = List(Lift(0.0, None, List(), "")),noExiters, 0, emptyJourneyHistory)
+
+    val nextState = s.nextTick(initialState, time = 1)
+    nextState.lifts shouldBe List(Lift(0.0, None, List(), "left"))
+  }
+
   object mockRandomiser extends Randomiser {
     override def randomDestination(location: Int, floors: Int): Int = 2
 

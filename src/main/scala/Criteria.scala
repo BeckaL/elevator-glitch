@@ -1,8 +1,8 @@
 object BasicCriteria extends ScenarioCriteria {
 
-  override def loadPeople(lifts: Lifts, peopleWaiting: People): List[Lift] = lifts.map(l => loadLift(l, peopleWaiting))
+  override def loadPeople(lifts: List[Lift], peopleWaiting: List[Person]): List[Lift] = lifts.map(l => loadLift(l, peopleWaiting))
 
-  def loadLift(lift: Lift, peopleWaiting: People): Lift = {
+  def loadLift(lift: Lift, peopleWaiting: List[Person]): Lift = {
     val peopleToLoad = peopleWaiting.filter(p => p.start == lift.location)
     if (peopleToLoad.nonEmpty) {
       val nearestDestinationOfPeople = peopleToLoad.map(_.destination).minBy(d => difference(lift.location, d))
