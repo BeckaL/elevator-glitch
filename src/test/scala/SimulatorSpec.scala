@@ -13,7 +13,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiser)
     val state = s.initialTick
 
-    state.lifts shouldBe List(Lift(0, None, List()), Lift(0, None, List()))
+    state.lifts shouldBe List(Lift(0, None, List(), ""), Lift(0, None, List(), ""))
     state.peopleWaiting shouldBe List()
   }
 
@@ -33,37 +33,37 @@ class SimulatorSpec extends FlatSpec with Matchers {
     val stateTwo = s.nextTick(stateOne, 2)
 
     stateOne.peopleWaiting shouldBe List(Person(0, 2, 1))
-    stateTwo.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1))))
+    stateTwo.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1)), ""))
     stateTwo.peopleWaiting shouldBe List()
   }
 
   it should "move a lift should move towards its destination floor" in {
     val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(0, Some(2), List(Person(0, 2, 1)))), time = 1)
+    val initialState = ElevatorState(noPeopleWaiting, lifts = List(Lift(0, Some(2), List(Person(0, 2, 1)), "")), noExiters, time = 1, emptyJourneyHistory)
     val stateOne = s.nextTick(initialState, 2)
 
-    stateOne.lifts shouldBe List(Lift(0.5, Some(2), List(Person(0, 2, 1))))
+    stateOne.lifts shouldBe List(Lift(0.5, Some(2), List(Person(0, 2, 1)), ""))
   }
 
   it should "stop a lift at its destination floor and empty of people" in {
     val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(1, Some(2), List(Person(0, 2, 1)))), time = 1)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(1, Some(2), List(Person(0, 2, 1)), "")), time = 1)
     val finalState = s.run(0, 2, initialState)
 
-    finalState.lifts shouldBe List(Lift(2, None, List()))
+    finalState.lifts shouldBe List(Lift(2, None, List(), ""))
   }
 
   it should "load two lifts at different locations" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
-    val initialState = ElevatorState(peopleWaiting = List(Person(0, 2, 1), Person(5, 1, 1)), lifts = List(Lift(0, None, List()), Lift(5, None, List())), time = 1)
+    val initialState = ElevatorState(peopleWaiting = List(Person(0, 2, 1), Person(5, 1, 1)), lifts = List(Lift(0, None, List(), ""), Lift(5, None, List(), "")), noExiters, time = 1, emptyJourneyHistory)
     val stateOne = s.nextTick(initialState, 2)
 
-    stateOne.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1))), Lift(5, Some(1), List(Person(5, 1, 1))))
+    stateOne.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1)), ""), Lift(5, Some(1), List(Person(5, 1, 1)), ""))
   }
 
   it should "save a person's journey once they disembark" in {
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
-    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(5, None, List(Person(1, 5, 0)))), time = 1)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(5, None, List(Person(1, 5, 0)), "")), time = 1)
     val stateOne = s.nextTick(initialState, 2)
 
     stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 1, endFloor = 5, startTime = 0, endTime = 2))
@@ -90,5 +90,9 @@ class SimulatorSpec extends FlatSpec with Matchers {
       timesCalled += 1; 1
     } else 0
   }
+
+  private val noPeopleWaiting = List()
+  private val noExiters = List()
+  private val emptyJourneyHistory = List()
 
 }

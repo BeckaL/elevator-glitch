@@ -1,25 +1,40 @@
 object Main extends App {
-  def main(): Unit = {
-    States.states.foreach(s => {
-      println(s.mkString("\n")); Thread.sleep(500)
+  def main(printer: PrintDestination = StdOutPrinter): Unit = {
+    SceneRenderer.states.foreach(s => {
+        printer.print(s.mkString("\n")); Thread.sleep(500)
     })
   }
-   main()
+  main()
 }
 
-object States extends Scenery with Lifts {
-  private def createScene(lift: LiftToRender, waiters: List[PersonOnFloor], exiters: List[PersonOnFloor]): List[String] = {
-    val renderedLift: List[String] = lift match {
-      case _ if lift.doorsOpen == "right" && lift.people > 0 => liftWithRightDoorOpenAndPerson
-      case _ if lift.doorsOpen == "left" && lift.people > 0 => liftWithLeftDoorOpenAndPerson
-      case _ if lift.people > 0 => liftWithPerson
-      case _ if lift.doorsOpen == "right" => liftWithRightDoorOpen
-      case _ if lift.doorsOpen == "left" => liftWithLeftDoorOpen
+trait PrintDestination {
+  def print(string: String): Unit
+}
+
+object StdOutPrinter extends PrintDestination {
+  override def print(string: String): Unit = println(string)
+}
+
+object SceneRenderer extends Scenery with Lifts {
+  def convertStateToScene(eState: ElevatorState): SceneToRender = {
+    val lift = LiftToRender(eState.lifts.head.location.toInt, eState.lifts.head.people.size, eState.lifts.head.doorsOpen)
+    val peopleWaiting = eState.peopleWaiting.map(person => PersonOnFloor(person.start))
+    val exiters = eState.exiters.map(person => PersonOnFloor(person.start))
+    SceneToRender(lift, peopleWaiting, exiters)
+  }
+
+  def createScene(scene: SceneToRender): List[String] = {
+    val renderedLift: List[String] = scene.lift match {
+      case _ if scene.lift.doorsOpen == "right" && scene.lift.people > 0 => liftWithRightDoorOpenAndPerson
+      case _ if scene.lift.doorsOpen == "left" && scene.lift.people > 0 => liftWithLeftDoorOpenAndPerson
+      case _ if scene.lift.people > 0 => liftWithPerson
+      case _ if scene.lift.doorsOpen == "right" => liftWithRightDoorOpen
+      case _ if scene.lift.doorsOpen == "left" => liftWithLeftDoorOpen
       case _ => emptyLift
     }
 
-    val renderedWaitingSpace = (1 to 3).toList.map(x => if (peopleWaitingOnFloor(x, waiters) > 0) waitingSpaceWithPerson else emptyWaitingSpace)
-    val renderedExitSpaces = (1 to 3).toList.map(x => if (peopleOnFloorWithCompleteJourneys(x, exiters) > 0) exitSpaceWithPerson else " ")
+    val renderedWaitingSpace = (1 to 3).toList.map(x => if (peopleWaitingOnFloor(x, scene.peopleWaiting) > 0) waitingSpaceWithPerson else emptyWaitingSpace)
+    val renderedExitSpaces = (1 to 3).toList.map(x => if (peopleOnFloorWithCompleteJourneys(x, scene.exiters) > 0) exitSpaceWithPerson else " ")
 
     def getRowString(n: Int, lift: LiftToRender, renderedLift: List[String]): String =
       getWaitingSpaceString(n) + liftString(lift, renderedLift, n) + exitSpaceString(n)
@@ -35,7 +50,7 @@ object States extends Scenery with Lifts {
         case _ => emptySpace
       }
 
-    (0 to 25).map(getRowString(_, lift, renderedLift)).toList.reverse
+    (0 to 25).map(getRowString(_, scene.lift, renderedLift)).toList.reverse
   }
 
   private def liftString(lift: LiftToRender, renderedLift: List[String], position: Int): String =
@@ -49,22 +64,22 @@ object States extends Scenery with Lifts {
   private def peopleOnFloorWithCompleteJourneys(floor: Int, peopleWithCompleteJourneys: List[PersonOnFloor]): Int =
     peopleWithCompleteJourneys.count(p => p.floor == floor)
 
-  val s1: List[String] = createScene(LiftToRender(0, 0, ""), List(PersonOnFloor(1)), List())
-  val s2: List[String] = createScene(LiftToRender(0, 0, "left"), List(PersonOnFloor(1)), List())
-  val s3: List[String] = createScene(LiftToRender(0, 1, "left"), List(), List())
-  val s4: List[String] = createScene(LiftToRender(0, 1, ""), List(), List())
-  val s5: List[String] = createScene(LiftToRender(1, 1, ""), List(), List())
-  val s6: List[String] = createScene(LiftToRender(2, 1, ""), List(), List())
-  val s7: List[String] = createScene(LiftToRender(3, 1, ""), List(), List())
-  val s8: List[String] = createScene(LiftToRender(4, 1, ""), List(), List())
-  val s9: List[String] = createScene(LiftToRender(5, 1, ""), List(), List())
-  val s10: List[String] = createScene(LiftToRender(6, 1, ""), List(), List())
-  val s11: List[String] = createScene(LiftToRender(7, 1, ""), List(), List())
-  val s12: List[String] = createScene(LiftToRender(8, 1, ""), List(), List())
-  val s13: List[String] = createScene(LiftToRender(9, 1, ""), List(), List())
-  val s14: List[String] = createScene(LiftToRender(9, 1, "right"), List(), List())
-  val s15: List[String] = createScene(LiftToRender(9, 0, "right"), List(), List(PersonOnFloor(2)))
-  val s16: List[String] = createScene(LiftToRender(9, 0, ""), List(), List(PersonOnFloor(2)))
+  val s1: List[String] = createScene(SceneToRender(LiftToRender(0, 0, ""), List(PersonOnFloor(1)), List()))
+  val s2: List[String] = createScene(SceneToRender(LiftToRender(0, 0, "left"), List(PersonOnFloor(1)), List()))
+  val s3: List[String] = createScene(SceneToRender(LiftToRender(0, 1, "left"), List(), List()))
+  val s4: List[String] = createScene(SceneToRender(LiftToRender(0, 1, ""), List(), List()))
+  val s5: List[String] = createScene(SceneToRender(LiftToRender(1, 1, ""), List(), List()))
+  val s6: List[String] = createScene(SceneToRender(LiftToRender(2, 1, ""), List(), List()))
+  val s7: List[String] = createScene(SceneToRender(LiftToRender(3, 1, ""), List(), List()))
+  val s8: List[String] = createScene(SceneToRender(LiftToRender(4, 1, ""), List(), List()))
+  val s9: List[String] = createScene(SceneToRender(LiftToRender(5, 1, ""), List(), List()))
+  val s10: List[String] = createScene(SceneToRender(LiftToRender(6, 1, ""), List(), List()))
+  val s11: List[String] = createScene(SceneToRender(LiftToRender(7, 1, ""), List(), List()))
+  val s12: List[String] = createScene(SceneToRender(LiftToRender(8, 1, ""), List(), List()))
+  val s13: List[String] = createScene(SceneToRender(LiftToRender(9, 1, ""), List(), List()))
+  val s14: List[String] = createScene(SceneToRender(LiftToRender(9, 1, "right"), List(), List()))
+  val s15: List[String] = createScene(SceneToRender(LiftToRender(9, 0, "right"), List(), List(PersonOnFloor(2))))
+  val s16: List[String] = createScene(SceneToRender(LiftToRender(9, 0, ""), List(), List(PersonOnFloor(2))))
   val states = List(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16)
 
 }
@@ -119,3 +134,6 @@ case class LiftToRender(position: Int, people: Int, doorsOpen: String)
 case class PersonOnFloor(floor: Int)
 
 case class PeopleOnFloor(people: List[PersonOnFloor])
+
+case class SceneToRender(lift: LiftToRender, peopleWaiting: List[PersonOnFloor], exiters: List[PersonOnFloor])
+

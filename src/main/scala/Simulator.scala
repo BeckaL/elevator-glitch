@@ -10,7 +10,7 @@ class Simulator(val lifts: Int,
   }
 
   val initialTick =
-    ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List())), peopleWaiting = List(), time = 0)
+    ElevatorState(lifts = List.fill(lifts)(Lift(0, None, List(), "")), peopleWaiting = List(), time = 0)
 
   def nextTick(state: ElevatorState, time: Int): ElevatorState = {
     val peopleInLiftsAtTickStart = peopleInLifts(state.lifts)
@@ -37,13 +37,13 @@ trait ElevatorObject {
   type People = List[Person]
 }
 
-case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], time: Int, journeyHistory: List[JourneyHistory] = List())
+case class ElevatorState(peopleWaiting: List[Person], lifts: List[Lift], exiters: List[Person] = List(), time: Int, journeyHistory: List[JourneyHistory] = List())
 
 case class JourneyHistory(startFloor: Int, endFloor: Int, startTime: Int, endTime: Int)
 
 case class Person(start: Int, destination: Int, startTime: Int) extends ElevatorObject
 
-case class Lift(location: Double, destination: Option[Int], people: List[Person]) extends ElevatorObject {
+case class Lift(location: Double, destination: Option[Int], people: List[Person], doorsOpen: String) extends ElevatorObject {
   def moveOne(): Lift = if (destination.isDefined) this.copy(location = oneTowardsDestination()) else this
 
   def updateDestination(): Lift = if (atDestination()) this.copy(destination = None) else this
