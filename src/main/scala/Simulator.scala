@@ -25,15 +25,15 @@ class Simulator(val lifts: Int,
 //      journeyHistory = state.journeyHistory ++ peopleWithCompletedJourneys.map(p => registerJourney(p, time)))
 //  }
 
-//  def peopleInLifts(lifts: Lifts): People = lifts.flatMap(_.people)
+  def peopleInLifts(lifts: Lifts): People = lifts.flatMap(_.people)
 
   def nextTick(state: ElevatorState, time: Int): ElevatorState = {
-    val liftsUpdatedWithNextAction: Lifts = updateLiftState(state.lifts, state.peopleWaiting)
-    val updatedLifts = updateLiftState(state.lifts, state.peopleWaiting)
-    val newLifts = updateLifts(updatedLifts, state.peopleWaiting)
+    val liftsUpdatedWithNextAction = updateLiftState(state.lifts, state.peopleWaiting)
+    val newLifts = updateLifts(liftsUpdatedWithNextAction, state.peopleWaiting)
+    val peopleStillWaitingAfterLoading = state.peopleWaiting.filterNot(peopleInLifts(newLifts).contains(_))
     val newPeopleWaiting = randomiser.generatePeople(time, this.floors)
         ElevatorState(lifts = newLifts,
-          peopleWaiting = state.peopleWaiting ++ newPeopleWaiting,
+          peopleWaiting = peopleStillWaitingAfterLoading ++ newPeopleWaiting,
           time = time,
           journeyHistory = state.journeyHistory)
       }
@@ -42,7 +42,9 @@ class Simulator(val lifts: Int,
   def updateLiftState(lifts: List[Lift], peopleWaiting: List[Person]): List[Lift] = lifts.map(lift => lift.copy(state = lift.updateNextAction(peopleWaiting)))
 
   def updateLifts(lifts: List[Lift], peopleWaiting: List[Person]): List[Lift] =
-    lifts.map(lift => if (lift.state == "Opening Left Door") lift.openDoors() else {
+    lifts.map(lift => if (lift.state == "Opening Left Door") lift.openDoors()
+    else if (lift.state == "Loading People") { criteria.loadPeople(lift, peopleWaiting)
+    }  else {
         lift.updateDestination().moveOne().empty()
       })
 
@@ -64,6 +66,7 @@ case class Person(start: Int, destination: Int, startTime: Int) extends Elevator
 
 case class Lift(location: Double, destination: Option[Int], people: List[Person], doorsOpen: String, state: String = "") extends ElevatorObject {
   def updateNextAction(peopleWaiting: People): String = this match {
+    case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start.toDouble - 1 == location) && doorsOpen == "left" => "Loading People"
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start.toDouble - 1 == location) => "Opening Left Door"
     case _ => ""
   }
@@ -82,7 +85,7 @@ case class Lift(location: Double, destination: Option[Int], people: List[Person]
 }
 
 trait ScenarioCriteria extends ElevatorObject {
-  def loadPeople(lifts: Lifts, peopleWaiting: People): Lifts
+  def loadPeople(lift: Lift, peopleWaiting: People): Lift
 }
 
 trait Randomiser extends ElevatorObject {
