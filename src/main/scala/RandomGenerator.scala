@@ -1,6 +1,6 @@
 import scala.util.Random
 
-class Runner {
+class RandomGenerator {
 
   object scalaRandomizer extends Randomiser {
     val r: Random.type = scala.util.Random
