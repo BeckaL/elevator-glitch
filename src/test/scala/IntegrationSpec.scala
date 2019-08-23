@@ -10,8 +10,8 @@ class IntegrationSpec extends FlatSpec with Matchers with CompletePrintedJourney
     val lifts = List(Lift(0.0, None, List(), ""))
     val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(0.0, None, List(), "")), exiters = List(), time = 0, journeyHistory = List())
 
-    r.run(0, 3, initialState)
-    myPrinter.output should be(List(stateOne.mkString("\n"), stateTwo.mkString("\n"), stateThree.mkString("\n")))
+    r.run(0, 4, initialState)
+    myPrinter.output should be(List(stateOne.mkString("\n"), stateTwo.mkString("\n"), stateThree.mkString("\n"), stateFour.mkString("\n")))
   }
 
 

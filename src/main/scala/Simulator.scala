@@ -29,6 +29,7 @@ class Simulator(val lifts: Int,
 
   def nextTick(state: ElevatorState, time: Int): ElevatorState = {
     val liftsUpdatedWithNextAction = updateLiftState(state.lifts, state.peopleWaiting)
+    println(liftsUpdatedWithNextAction)
     val newLifts = updateLifts(liftsUpdatedWithNextAction, state.peopleWaiting)
     val peopleStillWaitingAfterLoading = state.peopleWaiting.filterNot(peopleInLifts(newLifts).contains(_))
     val newPeopleWaiting = randomiser.generatePeople(time, this.floors)
@@ -44,7 +45,10 @@ class Simulator(val lifts: Int,
   def updateLifts(lifts: List[Lift], peopleWaiting: List[Person]): List[Lift] =
     lifts.map(lift => if (lift.state == "Opening Left Door") lift.openDoors()
     else if (lift.state == "Loading People") { criteria.loadPeople(lift, peopleWaiting)
-    }  else {
+    }
+    else if (lift.state == "Closing Door") { val newL = lift.closeDoor()
+      newL
+    } else {
         lift.updateDestination().moveOne().empty()
       })
 
@@ -68,12 +72,15 @@ case class Lift(location: Double, destination: Option[Int], people: List[Person]
   def updateNextAction(peopleWaiting: People): String = this match {
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start.toDouble - 1 == location) && doorsOpen == "left" => "Loading People"
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start.toDouble - 1 == location) => "Opening Left Door"
+    case _ if destination.isDefined && doorsOpen == "left" => "Closing Door"
     case _ => ""
   }
 
   def moveOne(): Lift = if (destination.isDefined) this.copy(location = oneTowardsDestination()) else this
 
   def openDoors(): Lift = this.copy(doorsOpen = "left")
+
+  def closeDoor(): Lift = this.copy(doorsOpen = "")
 
   def updateDestination(): Lift = if (atDestination()) this.copy(destination = None) else this
 
