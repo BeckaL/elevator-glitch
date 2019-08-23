@@ -10,11 +10,13 @@ object Main extends App {
 object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
   def convertStateToScene(eState: ElevatorState): SceneToRender = {
     val firstLift = eState.lifts.head
-    val lift = LiftToRender(firstLift.location.toInt, firstLift.people.size, firstLift.doorsOpen)
+    val lift = LiftToRender(convertLiftLocationToInt(firstLift.location), firstLift.people.size, firstLift.doorsOpen)
     val peopleWaiting = eState.peopleWaiting.map(person => PersonOnFloor(person.start))
     val exiters = eState.exiters.map(person => PersonOnFloor(person.start))
     SceneToRender(lift, peopleWaiting, exiters)
   }
+
+  def convertLiftLocationToInt(location: LiftLocation): Int = location.floor * 9 + location.remainder
 
   def createScene(scene: SceneToRender): List[String] = {
     val renderedLift: List[String] = scene.lift match {
