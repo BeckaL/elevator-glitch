@@ -9,10 +9,12 @@ object Main extends App {
 
 object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
   def convertStateToScene(eState: ElevatorState): SceneToRender = {
+    println(s"waiters are ${eState.peopleWaiting}")
+    println(s"exiters are ${eState.exiters}")
     val firstLift = eState.lifts.head
     val lift = LiftToRender(convertLiftLocationToInt(firstLift.location), firstLift.people.size, firstLift.doorsOpen)
     val peopleWaiting = eState.peopleWaiting.map(person => PersonOnFloor(person.start))
-    val exiters = eState.exiters.map(person => PersonOnFloor(person.start))
+    val exiters = eState.exiters.map(person => PersonOnFloor(person.destination))
     SceneToRender(lift, peopleWaiting, exiters)
   }
 
@@ -28,8 +30,8 @@ object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
       case _ => emptyLift
     }
 
-    val renderedWaitingSpace = (1 to 3).toList.map(x => if (peopleOnFloor(x, scene.peopleWaiting) > 0) waitingSpaceWithPerson else emptyWaitingSpace)
-    val renderedExitSpaces = (1 to 3).toList.map(x => if (peopleOnFloor(x, scene.exiters) > 0) exitSpaceWithPerson else " ")
+    val renderedWaitingSpace = (0 until 3).toList.map(x => if (peopleOnFloor(x, scene.peopleWaiting) > 0) waitingSpaceWithPerson else emptyWaitingSpace)
+    val renderedExitSpaces = (0 until 3).toList.map(x => if (peopleOnFloor(x, scene.exiters) > 0) exitSpaceWithPerson else " ")
 
     def getWaitingSpaceString(n: Int): String = exitOrWaitingSpaceString(n, floorWaitingSpace, emptyWaitingSpace, renderedWaitingSpace)
 
