@@ -3,27 +3,8 @@ class Simulator(val lifts: Int,
                 randomiser: Randomiser,
                 criteria: ScenarioCriteria = BasicCriteria) extends ElevatorObject {
 
-  def run(time: Int = 0, maxTicks: Int, state: ElevatorState = initialTick): ElevatorState = {
-    val newState = nextTick(state, time)
-    val newTime = time + 1
-    if (newTime < maxTicks) run(newTime, maxTicks, newState) else newState
-  }
-
   val initialTick =
     ElevatorState(lifts = List.fill(lifts)(Lift(LiftLocation(0, 0), None, List(), "")), peopleWaiting = List(), time = 0)
-
-//  def nextTick(state: ElevatorState, time: Int): ElevatorState = {
-//    val peopleInLiftsAtTickStart = peopleInLifts(state.lifts)
-//    val liftUpdatedWithNextAction: Lifts = updateLiftState(state.lifts, state.peopleWaiting)
-//    val loadedLifts = criteria.loadPeople(updateLifts(liftUpdatedWithNextAction, state.peopleWaiting), state.peopleWaiting)
-//    val peopleWithCompletedJourneys: People = peopleInLiftsAtTickStart.filterNot(peopleInLifts(loadedLifts).contains(_))
-//    val peopleStillWaitingAfterLoading = state.peopleWaiting.filterNot(peopleInLifts(loadedLifts).contains(_))
-//    val newPeopleWaiting = peopleStillWaitingAfterLoading ++ randomiser.generatePeople(time, this.floors)
-//    ElevatorState(lifts = loadedLifts,
-//      peopleWaiting = newPeopleWaiting,
-//      time = time,
-//      journeyHistory = state.journeyHistory ++ peopleWithCompletedJourneys.map(p => registerJourney(p, time)))
-//  }
 
   def peopleInLifts(lifts: Lifts): People = lifts.flatMap(_.people)
 
@@ -36,11 +17,9 @@ class Simulator(val lifts: Int,
         ElevatorState(lifts = newLifts,
           peopleWaiting = peopleStillWaitingAfterLoading ++ newPeopleWaiting,
           time = time,
-          journeyHistory = state.journeyHistory,
+          journeyHistory = state.journeyHistory ++ peopleWithCompletedJourneys.map(p => registerJourney(p, time)),
           exiters = peopleWithCompletedJourneys)
       }
-
-
 
   def updateLifts(lifts: List[Lift], peopleWaiting: List[Person]): List[Lift] =
     lifts.map(lift => lift.updateNextAction(peopleWaiting, criteria))
@@ -72,8 +51,6 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
     case _ => this
   }
 
-  def moveOne(): Lift = this.copy(location = oneTowardsDestination())
-
   def openDoors(side: String): Lift = this.copy(doorsOpen = side)
 
   def closeDoor(): Lift = this.copy(doorsOpen = "")
@@ -82,17 +59,13 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
 
   def unload():Lift = this.copy(people = people.filterNot(p => p.destination == this.location.floor))
 
-  def empty(): Lift = this.copy(people = people.filter(_.destination != location.floor && location.remainder == 0))
-
   def atDestination(): Boolean = destination.isDefined && location.floor == destination.get && location.remainder == 0
 
-  private def oneTowardsDestination(): LiftLocation = {
-    val locationInInt = location.floor * 9 + location.remainder
-    if (destination.get > location.floor) {
-      LiftLocation.convertIntToLiftLocation(locationInInt + 1)
-    } else LiftLocation.convertIntToLiftLocation(locationInInt - 1)
+  def moveOne(): Lift = {
+    val oneUp = LiftLocation.convertIntToLiftLocation(location.convertToInt + 1)
+    val oneDown = LiftLocation.convertIntToLiftLocation(location.convertToInt - 1)
+    this.copy(location = if (destination.get > location.floor) oneUp else oneDown)
   }
-
 }
 
 trait ScenarioCriteria extends ElevatorObject {

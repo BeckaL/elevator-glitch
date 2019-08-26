@@ -27,7 +27,6 @@ class SimulatorSpec extends FlatSpec with Matchers {
   }
 
   it should "an elevator with no destination opens its doors if there's someone waiting where it is" in {
-    val emptyLiftOnGroundFloorWithNoDestination = Lift(LiftLocation(0, 0), None, List(), "")
     val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
     val initialState = ElevatorState(
       List(Person(0, 1, 0)),
@@ -38,33 +37,52 @@ class SimulatorSpec extends FlatSpec with Matchers {
     val stateOne = s.nextTick(initialState, 1)
 
     stateOne.peopleWaiting shouldBe List(Person(0, 1, 0))
-    stateOne.lifts shouldBe List(emptyLiftOnGroundFloorWithNoDestination.copy(doorsOpen = "left"))
+    stateOne.lifts shouldBe List(emptyLiftOnGroundFloorWithLeftDoorOpen)
   }
-//
-//  it should "move a lift should move towards its destination floor" in {
-//    val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-//    val initialState = ElevatorState(noPeopleWaiting, lifts = List(Lift(0, Some(2), List(Person(0, 2, 1)), "")), noExiters, time = 1, emptyJourneyHistory)
-//    val stateOne = s.nextTick(initialState, 2)
-//
-//    stateOne.lifts shouldBe List(Lift(0.5, Some(2), List(Person(0, 2, 1)), ""))
-//  }
-//
-//  it should "stop a lift at its destination floor and empty of people" in {
-//    val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-//    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(1, Some(2), List(Person(0, 2, 1)), "")), time = 1)
-//    val finalState = s.run(0, 2, initialState)
-//
-//    finalState.lifts shouldBe List(Lift(2, None, List(), ""))
-//  }
-//
-//  it should "load two lifts at different locations" in {
-//    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
-//    val initialState = ElevatorState(peopleWaiting = List(Person(0, 2, 1), Person(5, 1, 1)), lifts = List(Lift(0, None, List(), ""), Lift(5, None, List(), "")), noExiters, time = 1, emptyJourneyHistory)
-//    val stateOne = s.nextTick(initialState, 2)
-//
-//    stateOne.lifts shouldBe List(Lift(0, Some(2), List(Person(0, 2, 1)), ""), Lift(5, Some(1), List(Person(5, 1, 1)), ""))
-//  }
-//
+
+  it should "a person should enter an elevator with its left door open and set the destination" in {
+    val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(List(waiterOnGroundFloorGoingToFirstFloor), lifts = List(emptyLiftOnGroundFloorWithLeftDoorOpen), noExiters, time = 0, emptyJourneyHistory)
+    val stateOne = s.nextTick(initialState, 1)
+
+    stateOne.lifts shouldBe List(liftWithPersonGoingToFirstFloorLeftDoorOpen)
+  }
+
+  it should "close its left door once people have boarded" in {
+    val s = new Simulator(floors = 5, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(liftWithPersonGoingToFirstFloorLeftDoorOpen), time = 0)
+    val stateOne = s.nextTick(initialState, 1)
+
+
+    stateOne.lifts shouldBe List(liftWithPersonGoingToFirstFloor)
+  }
+
+  it should "move towards its destination with people inside" in {
+    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(liftWithPersonGoingToFirstFloor), noExiters, time = 0, emptyJourneyHistory)
+    val stateOne = s.nextTick(initialState, 1)
+
+    stateOne.lifts shouldBe List(movingLiftWithPerson)
+  }
+
+  it should "stop at the destination floor and open its doors" in {
+    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(movingLiftAtDestination), noExiters, time = 0, emptyJourneyHistory)
+    val stateOne = s.nextTick(initialState, 1)
+
+    stateOne.lifts shouldBe List(liftAtDestinationWithRightDoorOpen)
+  }
+
+  it should "unload a person with a complete journey" in {
+    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(liftAtDestinationWithRightDoorOpen), noExiters, time = 0, emptyJourneyHistory)
+    val stateOne = s.nextTick(initialState, 1)
+
+    stateOne.lifts shouldBe List(emptyLiftOnFirstFloorWithRightDoorOpen)
+    stateOne.exiters shouldBe List(Person(0, 1, 0))
+    stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 0, endFloor = 1, startTime = 0, endTime = 1))
+  }
+
 //  it should "save a person's journey once they disembark" in {
 //    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
 //    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(5, None, List(Person(1, 5, 0)), "")), time = 1)
@@ -80,6 +98,17 @@ class SimulatorSpec extends FlatSpec with Matchers {
 //    val nextState = s.nextTick(initialState, time = 1)
 //    nextState.lifts shouldBe List(Lift(0.0, None, List(), "left"))
 //  }
+
+  private val emptyLiftOnGroundFloorWithNoDestination = Lift(LiftLocation(0, 0), None, List(), "")
+  private val emptyLiftOnGroundFloorWithLeftDoorOpen = emptyLiftOnGroundFloorWithNoDestination.copy(doorsOpen = "left")
+  private val waiterOnGroundFloorGoingToFirstFloor = Person(0, 1, 0)
+  private val liftWithPersonGoingToFirstFloorLeftDoorOpen = emptyLiftOnGroundFloorWithLeftDoorOpen.copy(people = List(waiterOnGroundFloorGoingToFirstFloor), destination = Some(waiterOnGroundFloorGoingToFirstFloor.destination))
+  private val liftWithPersonGoingToFirstFloor = liftWithPersonGoingToFirstFloorLeftDoorOpen.copy(doorsOpen = "")
+  private val movingLiftWithPerson = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(0, 1))
+  private val movingLiftAtDestination = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(1, 0))
+  private val liftAtDestinationWithRightDoorOpen = movingLiftAtDestination.copy(doorsOpen = "right")
+  private val emptyLiftOnFirstFloorWithRightDoorOpen = liftAtDestinationWithRightDoorOpen.copy(people = List())
+
 
   object mockRandomiser extends Randomiser {
     override def randomDestination(location: Int, floors: Int): Int = 2
