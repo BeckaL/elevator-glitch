@@ -409,3 +409,4 @@ trait CompletePrintedJourney {
       "─────────────────          ───── "),
   )
 }
+

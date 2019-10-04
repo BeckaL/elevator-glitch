@@ -16,9 +16,9 @@ object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
 
   def createScene(scene: SceneToRender): List[String] = {
     val renderedLift: List[String] = scene.lift match {
-      case _ if scene.lift.doorsOpen == "right" && scene.lift.people > 0 => liftWithRightDoorOpenAndPerson
-      case _ if scene.lift.doorsOpen == "left" && scene.lift.people > 0 => liftWithLeftDoorOpenAndPerson
-      case _ if scene.lift.people > 0 => liftWithPerson
+      case _ if scene.lift.doorsOpen == "right" && scene.lift.people > 0 => liftWithPerson(scene.lift.people, "right")
+      case _ if scene.lift.doorsOpen == "left" && scene.lift.people > 0 => liftWithPerson(scene.lift.people, "left")
+      case _ if scene.lift.people > 0 => liftWithPerson(scene.lift.people, "")
       case _ if scene.lift.doorsOpen == "right" => liftWithRightDoorOpen
       case _ if scene.lift.doorsOpen == "left" => liftWithLeftDoorOpen
       case _ => emptyLift

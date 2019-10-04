@@ -3,7 +3,7 @@ import elevatorGlitch.Renderer.SceneRenderer.{LiftToRender, PersonOnFloor, Scene
 import elevatorGlitch.Simulator.{ElevatorState, Lift, LiftLocation, Person}
 import org.scalatest.{FlatSpec, Matchers}
 
-class RendererSpec extends FlatSpec with Matchers with CompletePrintedJourney {
+class RendererSpec extends FlatSpec with Matchers with CompletePrintedJourney with IndividualScenes {
   val r = SceneRenderer
 
   "A simulator" should "convert an elevator state to a state to render" in {
@@ -47,5 +47,39 @@ class RendererSpec extends FlatSpec with Matchers with CompletePrintedJourney {
     val printedScene = r.createScene(sceneToPrint)
 
     printedScene shouldBe states(4)
+  }
+
+  "A simulator" should "should show two people in a lift" in {
+    val state = ElevatorState(List(), List(Lift(LiftLocation(0, 0), None, List(Person(1, 2, 0), Person(1, 2, 0)), "")), List(), 0, List())
+    val sceneToPrint = r.convertStateToScene(state)
+    val printedScene = r.createScene(sceneToPrint)
+
+    printedScene shouldBe twoPeopleInOneLift
+  }
+
+  "A simulator" should "should show three people in a lift" in {
+    val state = ElevatorState(List(), List(Lift(LiftLocation(0, 0), None, List(Person(1, 2, 0), Person(1, 2, 0),  Person(1, 2, 0)), "")), List(), 0, List())
+    val sceneToPrint = r.convertStateToScene(state)
+    val printedScene = r.createScene(sceneToPrint)
+
+    printedScene shouldBe threePeopleInOneLift
+  }
+
+  "A simulator" should "should show two people in a lift with a left door open" in {
+    val state = ElevatorState(List(), List(Lift(LiftLocation(0, 0), None, List(Person(1, 2, 0), Person(1, 2, 0)), "left")), List(), 0, List())
+    val sceneToPrint = r.convertStateToScene(state)
+    val printedScene = r.createScene(sceneToPrint)
+
+    printedScene shouldBe twoPeopleInOneLiftWithLeftDoorOpen
+  }
+
+  "A simulator" should "should show two people in a lift with a right door open" in {
+    val state = ElevatorState(List(), List(Lift(LiftLocation(0, 0), None, List(Person(1, 2, 0), Person(1, 2, 0)), "right")), List(), 0, List())
+    val sceneToPrint = r.convertStateToScene(state)
+    val printedScene = r.createScene(sceneToPrint)
+    println(printedScene.mkString("\n"))
+    println(twoPeopleInOneLiftWithRightDoorOpen.mkString("\n"))
+
+    printedScene shouldBe twoPeopleInOneLiftWithRightDoorOpen
   }
 }

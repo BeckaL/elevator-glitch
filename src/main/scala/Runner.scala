@@ -5,12 +5,12 @@ class Runner(randomiser: Randomiser, printer: Printer) {
   val renderer = SceneRenderer
   val simulator = new Simulator(1, 3, randomiser)
 
-  def run(time: Int = 0, maxTicks: Int, state: ElevatorState = simulator.initialTick): ElevatorState = {
+  def run(time: Int = 0, maxTicks: Int, state: ElevatorState = simulator.initialTick, sleep: Int = 0): ElevatorState = {
     val newState = simulator.nextTick(state, time)
     printState(newState)
-    Thread.sleep(500)
+    Thread.sleep(sleep)
     val newTime = time + 1
-    if (newTime < maxTicks) run(newTime, maxTicks, newState) else {
+    if (newTime < maxTicks) run(newTime, maxTicks, newState, sleep) else {
       newState
     }
   }

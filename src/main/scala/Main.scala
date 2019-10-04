@@ -7,7 +7,7 @@ object Main extends App {
     ////    })
     val r = new Runner(RandomGenerator, StdOutPrinter)
 
-    r.run(0, 15)
+    r.run(maxTicks=30, sleep=500)
   }
   main()
 }

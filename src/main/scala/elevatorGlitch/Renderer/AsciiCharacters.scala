@@ -17,20 +17,24 @@ trait AsciiCharacters {
 
 trait Lifts extends AsciiCharacters {
   private val topOfLift = topLeftJoin + horizontalBorder * 6 + topRightJoin
-  private val middleOfLift = verticalBorder + " " * 6 + verticalBorder
   private val bottomOfLift = bottomLeftJoin + horizontalBorder * 6 + bottomRightJoin
-  private val middleOfLiftWithLeftDoorOpen = " " * 7 + verticalBorder
-  private val middleOfLiftWithRightDoorOpen = verticalBorder + " " * 7
-  private val middleOfLiftWithPerson = verticalBorder + " " * 2 + person + " " * 2 + verticalBorder
-  private val middleOfLIftWithRightDoorOpenAndPerson = verticalBorder + " " * 2 + person + " " * 3
-  private val middleOfLiftWithLeftDoorOpenAndPerson = " " * 3 + person + " " * 2 + verticalBorder
+  private def middleOfLift(doorOpen: String) = {
+    val leftBorder = if (doorOpen == "left") " " else verticalBorder
+    val rightBorder = if (doorOpen == "right") " " else verticalBorder
+    leftBorder + " " * 6 + rightBorder
+  }
+  private def middleOfLiftWithPerson(n: Int, doorOpen: String) = {
+    val leftPadding = if (n == 1) "  " else ""
+    val rightPadding = if (n < 3) "  " else ""
+    val leftBorder = if (doorOpen == "left") " " else verticalBorder
+    val rightBorder = if (doorOpen == "right") " " else verticalBorder
+    leftBorder + leftPadding + person * n + rightPadding + rightBorder
+  }
 
-  val emptyLift: List[String] = lift(middleOfLift, None)
-  val liftWithLeftDoorOpen: List[String] = lift(middleOfLiftWithLeftDoorOpen, None)
-  val liftWithRightDoorOpen: List[String] = lift(middleOfLiftWithRightDoorOpen, None)
-  val liftWithPerson: List[String] = lift(middleOfLift, Some(middleOfLiftWithPerson))
-  val liftWithRightDoorOpenAndPerson: List[String] = lift(middleOfLiftWithRightDoorOpen, Some(middleOfLIftWithRightDoorOpenAndPerson))
-  val liftWithLeftDoorOpenAndPerson: List[String] = lift(middleOfLiftWithLeftDoorOpen, Some(middleOfLiftWithLeftDoorOpenAndPerson))
+  val emptyLift: List[String] = lift(middleOfLift(""), None)
+  val liftWithLeftDoorOpen: List[String] = lift(middleOfLift("left"), None)
+  val liftWithRightDoorOpen: List[String] = lift(middleOfLift("right"), None)
+  def liftWithPerson(n: Int, doorOpen: String): List[String] = lift(middleOfLift(doorOpen), Some(middleOfLiftWithPerson(n, doorOpen)))
 
   private def lift(middle: String, bottom: Option[String]): List[String] =
     List(topOfLift, middle, middle, middle, middle, bottom.getOrElse(middle), bottomOfLift)
