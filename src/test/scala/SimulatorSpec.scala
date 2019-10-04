@@ -84,6 +84,19 @@ class SimulatorSpec extends FlatSpec with Matchers {
     stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 0, endFloor = 1, startTime = 0, endTime = 1))
   }
 
+
+  it should "update a lift destination when passengers remain in the lift" in {
+    val s = new Simulator(floors = 3, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(liftAtFirstDestinationWithPeople), noExiters, time = 0, emptyJourneyHistory)
+    val stateOne = s.nextTick(initialState, 1)
+
+    stateOne.exiters shouldBe List(Person(0, 1, 0))
+
+
+    stateOne.lifts shouldBe List(liftWithRemainingPersonAndNewDestination)
+    stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 0, endFloor = 1, startTime = 0, endTime = 1))
+  }
+
   private val emptyLiftOnGroundFloorWithNoDestination = Lift(LiftLocation(0, 0), None, List(), "")
   private val emptyLiftOnGroundFloorWithLeftDoorOpen = emptyLiftOnGroundFloorWithNoDestination.copy(doorsOpen = "left")
   private val waiterOnGroundFloorGoingToFirstFloor = Person(0, 1, 0)
@@ -92,7 +105,9 @@ class SimulatorSpec extends FlatSpec with Matchers {
   private val movingLiftWithPerson = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(0, 1))
   private val movingLiftAtDestination = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(1, 0))
   private val liftAtDestinationWithRightDoorOpen = movingLiftAtDestination.copy(doorsOpen = "right")
-  private val emptyLiftOnFirstFloorWithRightDoorOpen = liftAtDestinationWithRightDoorOpen.copy(people = List())
+  private val liftAtFirstDestinationWithPeople = Lift(LiftLocation(1, 0), Some(1), List(Person(0, 1, 0), Person(0, 2, 0)), "right")
+  private val liftWithRemainingPersonAndNewDestination = Lift(LiftLocation(1, 0), Some(2), List(Person(0, 2, 0)), "right")
+  private val emptyLiftOnFirstFloorWithRightDoorOpen = liftAtDestinationWithRightDoorOpen.copy(people = List(), destination = None)
   private val noPeopleWaiting = List()
   private val noExiters = List()
   private val emptyJourneyHistory = List()

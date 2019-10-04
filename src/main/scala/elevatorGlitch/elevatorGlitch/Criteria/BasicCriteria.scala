@@ -1,6 +1,6 @@
 package elevatorGlitch.elevatorGlitch.Criteria
 
-import elevatorGlitch.Simulator.{Lift, Person, ScenarioCriteria}
+import elevatorGlitch.Simulator.{Lift, Person}
 
 object BasicCriteria extends ScenarioCriteria {
 
@@ -18,6 +18,12 @@ object BasicCriteria extends ScenarioCriteria {
       lift.copy(people = lift.people ++ peopleToLoad, destination = nextDestination)
     } else lift
   }
+
+  override def updateDestination(lift: Lift): Option[Int] =
+    if (lift.people.nonEmpty) {
+      println(s"people are ${lift.people}")
+      Some(lift.people.map(_.destination).minBy(d => difference(lift.location.floor, d)))
+    } else None
 
   private def difference(location: Double, destination: Int): Double = (location - destination).abs
 }

@@ -1,6 +1,6 @@
 package elevatorGlitch.Simulator
 
-import elevatorGlitch.elevatorGlitch.Criteria.BasicCriteria
+import elevatorGlitch.elevatorGlitch.Criteria.{BasicCriteria, ScenarioCriteria}
 
 class Simulator(val lifts: Int,
                 val floors: Int,
@@ -48,7 +48,7 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) && doorsOpen == "left" => criteria.loadPeople(this, peopleWaiting)
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) => this.openDoors("left")
     case _ if destination.isDefined && doorsOpen == "left" => this.closeDoor()
-    case _ if atDestination() && doorsOpen == "right" => this.unload
+    case _ if atDestination() && doorsOpen == "right" => this.unload(criteria)
     case _ if atDestination() => this.openDoors("right")
     case _ if destination.isDefined && doorsOpen == "" => this.moveOne()
     case _ if destination.isDefined && location.remainder > 0 => this.moveOne()
@@ -59,9 +59,16 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
 
   def closeDoor(): Lift = this.copy(doorsOpen = "")
 
-  def updateDestination(): Lift = if (atDestination()) this.copy(destination = None) else this
-
-  def unload():Lift = this.copy(people = people.filterNot(p => p.destination == this.location.floor))
+  def unload(criteria: ScenarioCriteria):Lift = {
+    println("unload called")
+    println(s"new destination is ${criteria.updateDestination(this)}")
+    val liftWithoutDisembarkers = this.copy(
+      people = people.filterNot(p => p.destination == this.location.floor)
+    )
+    liftWithoutDisembarkers.copy(
+      destination = criteria.updateDestination(liftWithoutDisembarkers)
+    )
+  }
 
   def atDestination(): Boolean = destination.isDefined && location.floor == destination.get && location.remainder == 0
 
@@ -70,10 +77,6 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
     val oneDown = LiftLocation.convertIntToLiftLocation(location.convertToInt - 1)
     this.copy(location = if (destination.get > location.floor) oneUp else oneDown)
   }
-}
-
-trait ScenarioCriteria extends ElevatorObject {
-  def loadPeople(lift: Lift, peopleWaiting: People): Lift
 }
 
 trait Randomiser extends ElevatorObject {
