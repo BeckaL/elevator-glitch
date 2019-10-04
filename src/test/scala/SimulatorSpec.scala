@@ -97,6 +97,14 @@ class SimulatorSpec extends FlatSpec with Matchers {
     stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 0, endFloor = 1, startTime = 0, endTime = 1))
   }
 
+  it should "move towards waiters if there are none on the current floor" in {
+    val s = new Simulator(floors = 3, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
+    val initialState = ElevatorState(peopleWaiting = List(Person(1, 2, 0)), lifts = List(emptyLiftOnGroundFloorWithNoDestination), noExiters, time = 0, emptyJourneyHistory)
+    val stateOne = s.nextTick(initialState, 1)
+
+    stateOne.lifts shouldBe List(Lift(LiftLocation(0, 0), Some(1), List(), ""))
+  }
+
   private val emptyLiftOnGroundFloorWithNoDestination = Lift(LiftLocation(0, 0), None, List(), "")
   private val emptyLiftOnGroundFloorWithLeftDoorOpen = emptyLiftOnGroundFloorWithNoDestination.copy(doorsOpen = "left")
   private val waiterOnGroundFloorGoingToFirstFloor = Person(0, 1, 0)

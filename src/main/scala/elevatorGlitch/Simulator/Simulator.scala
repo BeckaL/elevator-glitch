@@ -30,6 +30,8 @@ class Simulator(val lifts: Int,
 
   def registerJourney(p: Person, time: Int): JourneyHistory =
     JourneyHistory(startFloor = p.start, endFloor = p.destination, startTime = p.startTime, endTime = time)
+
+
 }
 
 trait ElevatorObject {
@@ -45,28 +47,42 @@ case class Person(start: Int, destination: Int, startTime: Int) extends Elevator
 
 case class Lift(location: LiftLocation, destination: Option[Int], people: List[Person], doorsOpen: String) extends ElevatorObject {
   def updateNextAction(peopleWaiting: People, criteria: ScenarioCriteria): Lift = this match {
-    case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) && doorsOpen == "left" => criteria.loadPeople(this, peopleWaiting)
-    case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) => this.openDoors("left")
-    case _ if destination.isDefined && doorsOpen == "left" => this.closeDoor()
-    case _ if atDestination() && doorsOpen == "right" => this.unload(criteria)
-    case _ if atDestination() => this.openDoors("right")
-    case _ if destination.isDefined && doorsOpen == "" => this.moveOne()
-    case _ if destination.isDefined && location.remainder > 0 => this.moveOne()
-    case _ => this
+    case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) && doorsOpen == "left" =>
+      criteria.loadPeople(this, peopleWaiting)
+    case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) =>
+      this.openDoors("left")
+    case _ if destination.isEmpty && peopleWaiting.nonEmpty =>
+      this.updateDestination(criteria, peopleWaiting)
+    case _ if destination.isDefined && doorsOpen == "left" =>
+      this.closeDoor()
+    case _ if atDestination() && doorsOpen == "right" =>
+      this.unload(criteria)
+    case _ if atDestination() && this.people.isEmpty =>
+      this.openDoors("left")
+    case _ if atDestination() =>
+      this.openDoors("right")
+    case _ if destination.isDefined && doorsOpen == "" =>
+      this.moveOne()
+    case _ if destination.isDefined && location.remainder > 0 =>
+      this.moveOne()
+    case _ =>
+      this
   }
 
-  def openDoors(side: String): Lift = this.copy(doorsOpen = side)
+  def updateDestination(criteria: ScenarioCriteria, peopleWaiting: List[Person]): Lift = this.copy(destination = criteria.updateDestination(this, peopleWaiting))
+
+  def openDoors(side: String): Lift = this.copy(doorsOpen = side, destination = None)
 
   def closeDoor(): Lift = this.copy(doorsOpen = "")
 
+
   def unload(criteria: ScenarioCriteria):Lift = {
-    println("unload called")
-    println(s"new destination is ${criteria.updateDestination(this)}")
     val liftWithoutDisembarkers = this.copy(
       people = people.filterNot(p => p.destination == this.location.floor)
     )
+
     liftWithoutDisembarkers.copy(
-      destination = criteria.updateDestination(liftWithoutDisembarkers)
+      destination = criteria.updateDestination(liftWithoutDisembarkers, List())
     )
   }
 

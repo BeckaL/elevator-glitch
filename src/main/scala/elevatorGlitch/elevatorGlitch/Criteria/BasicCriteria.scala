@@ -19,11 +19,14 @@ object BasicCriteria extends ScenarioCriteria {
     } else lift
   }
 
-  override def updateDestination(lift: Lift): Option[Int] =
+  override def updateDestination(lift: Lift, peopleWaiting: List[Person]): Option[Int] =
     if (lift.people.nonEmpty) {
       println(s"people are ${lift.people}")
       Some(lift.people.map(_.destination).minBy(d => difference(lift.location.floor, d)))
-    } else None
+    } else if (peopleWaiting.nonEmpty) {
+      Some(peopleWaiting.map(_.start).minBy(d => difference(lift.location.floor, d)))
+    }
+    else None
 
   private def difference(location: Double, destination: Int): Double = (location - destination).abs
 }

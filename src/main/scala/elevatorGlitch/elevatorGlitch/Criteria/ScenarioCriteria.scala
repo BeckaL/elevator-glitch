@@ -6,7 +6,7 @@ trait ScenarioCriteria extends ElevatorObject {
 
   def loadPeople(lift: Lift, peopleWaiting: People): Lift
 
-  def updateDestination(lift: Lift): Option[Int]
+  def updateDestination(lift: Lift, peopleWaiting: People): Option[Int]
 
 }
 
