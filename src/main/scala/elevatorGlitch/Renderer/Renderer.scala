@@ -2,7 +2,7 @@ package elevatorGlitch.Renderer
 
 import elevatorGlitch.Simulator.{ElevatorState, LiftLocation}
 
-object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
+object SceneRenderer extends AsciiCharacters with AsciiLifts {
 
   def convertStateToScene(eState: ElevatorState): SceneToRender = {
     val firstLift = eState.lifts.head
@@ -49,8 +49,5 @@ object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
   case class PeopleOnFloor(people: List[PersonOnFloor])
 
   case class SceneToRender(lift: LiftToRender, peopleWaiting: List[PersonOnFloor], exiters: List[PersonOnFloor])
-
-
-
 }
 
