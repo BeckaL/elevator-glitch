@@ -1,3 +1,6 @@
+import elevatorGlitch.Renderer.SceneRenderer
+import elevatorGlitch.Simulator.{ElevatorState, Randomiser, Simulator}
+
 class Runner(randomiser: Randomiser, printer: Printer) {
   val renderer = SceneRenderer
   val simulator = new Simulator(1, 3, randomiser)

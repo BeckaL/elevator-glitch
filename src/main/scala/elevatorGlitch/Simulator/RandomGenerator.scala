@@ -1,3 +1,5 @@
+package elevatorGlitch.Simulator
+
 import scala.util.Random
 
 class RandomGenerator {

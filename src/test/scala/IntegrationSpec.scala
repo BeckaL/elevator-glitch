@@ -1,3 +1,4 @@
+import elevatorGlitch.Simulator.{ElevatorState, Lift, LiftLocation, Randomiser}
 import org.scalatest.{FlatSpec, Matchers}
 
 class IntegrationSpec extends FlatSpec with Matchers with CompletePrintedJourney {

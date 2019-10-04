@@ -1,3 +1,7 @@
+package elevatorGlitch.elevatorGlitch.Criteria
+
+import elevatorGlitch.Simulator.{Lift, Person, ScenarioCriteria}
+
 object BasicCriteria extends ScenarioCriteria {
 
   override def loadPeople(lift: Lift, peopleWaiting: List[Person]): Lift = loadLift(lift, peopleWaiting)

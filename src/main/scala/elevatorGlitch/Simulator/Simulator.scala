@@ -1,3 +1,7 @@
+package elevatorGlitch.Simulator
+
+import elevatorGlitch.elevatorGlitch.Criteria.BasicCriteria
+
 class Simulator(val lifts: Int,
                 val floors: Int,
                 randomiser: Randomiser,

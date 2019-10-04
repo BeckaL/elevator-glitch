@@ -1,3 +1,6 @@
+import elevatorGlitch.Renderer.SceneRenderer
+import elevatorGlitch.Renderer.SceneRenderer.{LiftToRender, PersonOnFloor, SceneToRender}
+import elevatorGlitch.Simulator.{ElevatorState, Lift, LiftLocation, Person}
 import org.scalatest.{FlatSpec, Matchers}
 
 class RendererSpec extends FlatSpec with Matchers with CompletePrintedJourney {

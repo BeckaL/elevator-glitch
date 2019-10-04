@@ -1,3 +1,4 @@
+import elevatorGlitch.Simulator.{ElevatorState, JourneyHistory, Lift, LiftLocation, Person, Randomiser, Simulator}
 import org.scalatest._
 
 class SimulatorSpec extends FlatSpec with Matchers {
@@ -83,22 +84,6 @@ class SimulatorSpec extends FlatSpec with Matchers {
     stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 0, endFloor = 1, startTime = 0, endTime = 1))
   }
 
-//  it should "save a person's journey once they disembark" in {
-//    val s = new Simulator(floors = 5, lifts = 2, randomiser = mockRandomiserGeneratingNoPeople)
-//    val initialState = ElevatorState(peopleWaiting = List(), lifts = List(Lift(5, None, List(Person(1, 5, 0)), "")), time = 1)
-//    val stateOne = s.nextTick(initialState, 2)
-//
-//    stateOne.journeyHistory shouldBe List(JourneyHistory(startFloor = 1, endFloor = 5, startTime = 0, endTime = 2))
-//  }
-//
-//  it should "a lift opens its door to let people board" in {
-//    val s = new Simulator(floors = 3, lifts = 1, randomiser = mockRandomiserGeneratingNoPeople)
-//    val initialState = ElevatorState(peopleWaiting = List(Person(1, 2, 0)), lifts = List(Lift(0.0, None, List(), "")),noExiters, 0, emptyJourneyHistory)
-//
-//    val nextState = s.nextTick(initialState, time = 1)
-//    nextState.lifts shouldBe List(Lift(0.0, None, List(), "left"))
-//  }
-
   private val emptyLiftOnGroundFloorWithNoDestination = Lift(LiftLocation(0, 0), None, List(), "")
   private val emptyLiftOnGroundFloorWithLeftDoorOpen = emptyLiftOnGroundFloorWithNoDestination.copy(doorsOpen = "left")
   private val waiterOnGroundFloorGoingToFirstFloor = Person(0, 1, 0)
@@ -108,7 +93,9 @@ class SimulatorSpec extends FlatSpec with Matchers {
   private val movingLiftAtDestination = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(1, 0))
   private val liftAtDestinationWithRightDoorOpen = movingLiftAtDestination.copy(doorsOpen = "right")
   private val emptyLiftOnFirstFloorWithRightDoorOpen = liftAtDestinationWithRightDoorOpen.copy(people = List())
-
+  private val noPeopleWaiting = List()
+  private val noExiters = List()
+  private val emptyJourneyHistory = List()
 
   object mockRandomiser extends Randomiser {
     override def randomDestination(location: Int, floors: Int): Int = 2
@@ -128,12 +115,9 @@ class SimulatorSpec extends FlatSpec with Matchers {
     override def randomDestination(location: Int, floors: Int): Int = 2
 
     override def randomNumberOfPeople(): Int = if (timesCalled == 0) {
-      timesCalled += 1; 1
+      timesCalled += 1;
+      1
     } else 0
   }
-
-  private val noPeopleWaiting = List()
-  private val noExiters = List()
-  private val emptyJourneyHistory = List()
 
 }

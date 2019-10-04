@@ -1,3 +1,5 @@
+package elevatorGlitch.Renderer
+
 trait AsciiCharacters {
   val person = "\uC6C3"
   val bottomLeftJoin = "\u255a"
