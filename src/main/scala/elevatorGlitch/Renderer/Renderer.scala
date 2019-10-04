@@ -15,15 +15,7 @@ object SceneRenderer extends Scenery with Lifts with AsciiCharacters {
   def convertLiftLocationToInt(location: LiftLocation): Int = location.floor * 9 + location.remainder
 
   def createScene(scene: SceneToRender): List[String] = {
-    val renderedLift: List[String] = scene.lift match {
-      case _ if scene.lift.doorsOpen == "right" && scene.lift.people > 0 => createLiftString(scene.lift.people, "right")
-      case _ if scene.lift.doorsOpen == "left" && scene.lift.people > 0 => createLiftString(scene.lift.people, "left")
-      case _ if scene.lift.people > 0 => createLiftString(scene.lift.people, "")
-      case _ if scene.lift.doorsOpen == "right" => createLiftString(0, "right")
-      case _ if scene.lift.doorsOpen == "left" => createLiftString(0, "left")
-      case _ => createLiftString(0, "")
-    }
-
+    val renderedLift: List[String] = createLiftString(scene.lift.people, scene.lift.doorsOpen)
     val renderedWaitingSpace = (0 until 3).toList.map(x => if (peopleOnFloor(x, scene.peopleWaiting) > 0) waitingSpaceWithPerson else emptyWaitingSpace)
     val renderedExitSpaces = (0 until 3).toList.map(x => if (peopleOnFloor(x, scene.exiters) > 0) exitSpaceWithPerson else " ")
 
