@@ -8,6 +8,7 @@ class Runner(randomiser: Randomiser, printer: Printer) {
   def run(time: Int = 0, maxTicks: Int, state: ElevatorState = simulator.initialTick): ElevatorState = {
     val newState = simulator.nextTick(state, time)
     printState(newState)
+    Thread.sleep(500)
     val newTime = time + 1
     if (newTime < maxTicks) run(newTime, maxTicks, newState) else {
       newState
