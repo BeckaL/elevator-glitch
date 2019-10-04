@@ -14,10 +14,12 @@ trait AsciiCharacters {
 
   def floorSpaceOfLength(n: Int): String = floor * n
 
+  def waitingSpaceWithPerson(n: Int): String = emptySpaceOfLength(2 * (8 - n)) + person * n + emptySpaceOfLength(2)
+  def exitSpaceWithPerson(n: Int): String =
+    if (n==0) " " else emptySpaceOfLength(1) + person * n + emptySpaceOfLength(2 * (2 - n) + 1)
+
   val emptyWaitingSpace: String = emptySpaceOfLength(18)
   val floorWaitingSpace: String = floorSpaceOfLength(17) + emptySpaceOfLength(1)
-  val waitingSpaceWithPerson: String = emptySpaceOfLength(14) + person + emptySpaceOfLength(2)
   val exitFloorSpace: String = emptySpaceOfLength(1) + floorSpaceOfLength(5) + emptySpaceOfLength(1)
-  val exitSpaceWithPerson: String = emptySpaceOfLength(2) + person + emptySpaceOfLength(2)
   val emptyLiftSpace = emptySpaceOfLength(8)
 }

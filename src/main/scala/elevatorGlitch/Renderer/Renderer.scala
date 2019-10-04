@@ -16,8 +16,8 @@ object SceneRenderer extends AsciiCharacters with AsciiLifts {
 
   def createScene(scene: SceneToRender): List[String] = {
     val renderedLift: List[String] = createLiftString(scene.lift.people, scene.lift.doorsOpen)
-    val renderedWaitingSpace = (0 until 3).toList.map(x => if (peopleOnFloor(x, scene.peopleWaiting) > 0) waitingSpaceWithPerson else emptyWaitingSpace)
-    val renderedExitSpaces = (0 until 3).toList.map(x => if (peopleOnFloor(x, scene.exiters) > 0) exitSpaceWithPerson else " ")
+    val renderedWaitingSpace = (0 until 3).toList.map(x => waitingSpaceWithPerson(countPeopleOnFloor(x, scene.peopleWaiting)))
+    val renderedExitSpaces = (0 until 3).toList.map(x => exitSpaceWithPerson(countPeopleOnFloor(x, scene.exiters)))
 
     def getWaitingSpaceString(n: Int): String = exitOrWaitingSpaceString(n, floorWaitingSpace, emptyWaitingSpace, renderedWaitingSpace)
 
@@ -41,7 +41,8 @@ object SceneRenderer extends AsciiCharacters with AsciiLifts {
       renderedLift(6 - (position - lift.position))
     } else emptyLiftSpace
 
-  private def peopleOnFloor(floor: Int, people: List[PersonOnFloor]): Int = people.count(p => p.floor == floor)
+  private def countPeopleOnFloor(floor: Int, people: List[PersonOnFloor]): Int = people.count(p => p.floor == floor)
+
   case class LiftToRender(position: Int, people: Int, doorsOpen: String)
 
   case class PersonOnFloor(floor: Int)

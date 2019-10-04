@@ -77,9 +77,26 @@ class RendererSpec extends FlatSpec with Matchers with CompletePrintedJourney wi
     val state = ElevatorState(List(), List(Lift(LiftLocation(0, 0), None, List(Person(1, 2, 0), Person(1, 2, 0)), "right")), List(), 0, List())
     val sceneToPrint = r.convertStateToScene(state)
     val printedScene = r.createScene(sceneToPrint)
-    println(printedScene.mkString("\n"))
-    println(twoPeopleInOneLiftWithRightDoorOpen.mkString("\n"))
 
     printedScene shouldBe twoPeopleInOneLiftWithRightDoorOpen
+  }
+
+  "A simulator" should "should show two people waiting" in {
+    val state = ElevatorState(List(Person(0, 2, 0), Person(0, 2, 0)), List(Lift(LiftLocation(0, 0), None, List(), "")), List(), 0, List())
+    val sceneToPrint = r.convertStateToScene(state)
+    val printedScene = r.createScene(sceneToPrint)
+
+    printedScene shouldBe twoPeopleWaitingOnGroundFloor
+  }
+
+  "A simulator" should "should show two people exiting" in {
+    val state = ElevatorState(List(), List(Lift(LiftLocation(0, 0), None, List(), "")), List(Person(1, 0, 0), Person(1, 0, 0)), 0, List())
+    val sceneToPrint = r.convertStateToScene(state)
+    val printedScene = r.createScene(sceneToPrint)
+
+    println(printedScene.mkString("\n"))
+    println(twoPeopleExitingOnGroundFloor.mkString("\n"))
+
+    printedScene shouldBe twoPeopleExitingOnGroundFloor
   }
 }
