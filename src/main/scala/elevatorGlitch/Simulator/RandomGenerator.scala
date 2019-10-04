@@ -6,7 +6,7 @@ object RandomGenerator extends Randomiser {
   val r: Random.type = scala.util.Random
 
   def randomDestination(location: Int, floors: Int): Int = {
-    val viableFloors = (0 to floors).toSet diff Set(location)
+    val viableFloors = (0 until floors).toSet diff Set(location)
     viableFloors.toVector(r.nextInt(viableFloors.size))
   }
 
