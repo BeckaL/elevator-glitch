@@ -1,12 +1,10 @@
-This is a scala programme with an SBT structure to model how different lift algorithms affect people's waiting time.
+This is a scala programme with an SBT structure.
+ 
+The eventual aim is to model how different lift algorithms affect people's waiting time.
 
-The model's assumptions are as follows:
+It's also got an ASCII animation front end to visualise a simulation (and because that's about as front end as I get)
 
-* Time proceeds in a 'tick based' fashion, rather than continuously
-* People will wait for a lift until it comes (rather than getting bored and taking the stairs)
-* Lifts take 1 tick to move up or down one floor, and it takes 1 tick for 0 - 5 people to enter or leave the lift, and 2 ticks for 5 or more people.
-
-## Running the programme 
+## Running the programme to see a random visualisation
 
 `sbt compile`
 `sbt run`
@@ -15,3 +13,8 @@ The model's assumptions are as follows:
 
 `sbt test`
 
+## Still to do
+
+* Add in multiple lifts functionality (possibly with concurrency)
+* Add in timer stats to evaluate a simulation
+* Implement different algorithms to test by extending ScenarioCriteria
