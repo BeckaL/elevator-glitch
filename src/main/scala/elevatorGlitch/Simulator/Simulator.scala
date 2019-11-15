@@ -49,14 +49,16 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
   def updateNextAction(peopleWaiting: People, criteria: ScenarioCriteria): Lift = this match {
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) && doorsOpen == "left" =>
       criteria.loadPeople(this, peopleWaiting)
+    case _ if doorsOpen == "right" && peopleInLiftAtDestination() =>
+      this.unload(criteria)
+    case _ if doorsOpen == "right" && !peopleInLiftAtDestination() =>
+      this.closeDoor()
     case _ if destination.isEmpty && peopleWaiting.exists(p=> p.start  == location.floor && location.remainder == 0) =>
       this.openDoors("left")
     case _ if destination.isEmpty && peopleWaiting.nonEmpty =>
       this.updateDestination(criteria, peopleWaiting)
     case _ if destination.isDefined && doorsOpen == "left" =>
       this.closeDoor()
-    case _ if atDestination() && doorsOpen == "right" =>
-      this.unload(criteria)
     case _ if atDestination() && this.people.isEmpty =>
       this.openDoors("left")
     case _ if atDestination() =>
@@ -74,6 +76,8 @@ case class Lift(location: LiftLocation, destination: Option[Int], people: List[P
   def openDoors(side: String): Lift = this.copy(doorsOpen = side, destination = None)
 
   def closeDoor(): Lift = this.copy(doorsOpen = "")
+
+  def peopleInLiftAtDestination(): Boolean = this.people.exists(p => p.destination == this.location.floor)
 
 
   def unload(criteria: ScenarioCriteria):Lift = {

@@ -112,7 +112,7 @@ class SimulatorSpec extends FlatSpec with Matchers {
   private val liftWithPersonGoingToFirstFloor = liftWithPersonGoingToFirstFloorLeftDoorOpen.copy(doorsOpen = "")
   private val movingLiftWithPerson = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(0, 1))
   private val movingLiftAtDestination = liftWithPersonGoingToFirstFloor.copy(location = LiftLocation(1, 0))
-  private val liftAtDestinationWithRightDoorOpen = movingLiftAtDestination.copy(doorsOpen = "right")
+  private val liftAtDestinationWithRightDoorOpen = movingLiftAtDestination.copy(doorsOpen = "right", destination = None)
   private val liftAtFirstDestinationWithPeople = Lift(LiftLocation(1, 0), Some(1), List(Person(0, 1, 0), Person(0, 2, 0)), "right")
   private val liftWithRemainingPersonAndNewDestination = Lift(LiftLocation(1, 0), Some(2), List(Person(0, 2, 0)), "right")
   private val emptyLiftOnFirstFloorWithRightDoorOpen = liftAtDestinationWithRightDoorOpen.copy(people = List(), destination = None)

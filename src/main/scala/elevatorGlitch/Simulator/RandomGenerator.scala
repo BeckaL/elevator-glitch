@@ -12,8 +12,8 @@ object RandomGenerator extends Randomiser {
 
   def randomNumberOfPeople(): Int =
     r.nextInt(100) match {
-      case x if x < 90 => 0
-      case x if x < 97 => 1
+      case x if x < 95 => 0
+      case x if x < 99 => 1
       case _ => 2
     }
 }
