@@ -1,0 +1,8 @@
+FROM eu.gcr.io/halfpipe-io/build-openjdk8-scala
+RUN mkdir -p /work
+WORKDIR /work
+COPY . .
+RUN sbt update exit
+RUN echo "working directory is"
+RUN pwd
+RUN ls

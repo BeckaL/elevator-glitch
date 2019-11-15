@@ -1,0 +1,9 @@
+version: '3'
+services:
+  app:
+    image: eu.gcr.io/halfpipe-io/build-openjdk11-scala
+    volumes:
+      - ./.:/work
+      - $HOME/.sbt:/root/.sbt
+    working_dir: /work
+    command: sbt run
